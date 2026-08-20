@@ -1,0 +1,9 @@
+# Ignore environment configuration files containing sensitive credentials
+.env
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore local vendor folders (if using composer later)
+/vendor/
