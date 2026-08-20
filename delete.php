@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 $id = $_GET['id'] ?? null;
 
 if ($id) {
-    // Delete story only if user_id matches session
+    // Delete only if user is the author
     $stmt = $pdo->prepare("DELETE FROM blogPost WHERE id = :id AND user_id = :user_id");
     $stmt->execute(['id' => $id, 'user_id' => $_SESSION['user_id']]);
 }

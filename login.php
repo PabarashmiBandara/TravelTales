@@ -9,14 +9,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     if (!empty($username) && !empty($password)) {
-        // Fetch user record
         $stmt = $pdo->prepare("SELECT * FROM user WHERE username = :username");
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch();
 
-        // Verify password against database hash
         if ($user && password_verify($password, $user['password'])) {
-            // Save active login session
             $_SESSION['user_id']  = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role']     = $user['role'];
@@ -32,24 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<h2>Login to TravelTales</h2>
+<div class="card" style="max-width: 450px; margin: 30px auto;">
+    <h2 style="margin-top:0;">Login to TravelTales</h2>
 
-<?php if ($error): ?>
-    <div style="color: red; background: #ffe6e6; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-        <p style="margin: 0;"><?= htmlspecialchars($error); ?></p>
-    </div>
-<?php endif; ?>
+    <?php if ($error): ?>
+        <div class="alert-error"><?= htmlspecialchars($error); ?></div>
+    <?php endif; ?>
 
-<form action="login.php" method="POST">
-    <div>
+    <form action="login.php" method="POST">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" required value="<?= htmlspecialchars($_POST['username'] ?? ''); ?>">
-    </div>
-    <div>
+
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Login</button>
-</form>
+
+        <button type="submit" class="btn" style="width: 100%;">Login</button>
+    </form>
+</div>
 
 <?php require_once 'includes/footer.php'; ?>

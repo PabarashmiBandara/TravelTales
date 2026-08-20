@@ -1,8 +1,5 @@
--- Create database
-CREATE DATABASE IF NOT EXISTS blog_db;
-USE blog_db;
+-- Database Schema for TravelTales Application
 
--- 1. User Table
 CREATE TABLE IF NOT EXISTS user (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -12,7 +9,6 @@ CREATE TABLE IF NOT EXISTS user (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Blog Post Table
 CREATE TABLE IF NOT EXISTS blogPost (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
