@@ -12,7 +12,7 @@ function loadEnv($path) {
     }
 }
 
-// Load .env file from root directory
+// Load .env from project root
 loadEnv(__DIR__ . '/../.env');
 
 $host     = $_ENV['DB_HOST'] ?? 'localhost';

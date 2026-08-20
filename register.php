@@ -34,8 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="card" style="max-width: 480px; margin: 30px auto;">
-    <h2 style="margin-top:0;">Join TravelTales</h2>
+<div class="card" style="max-width: 480px; margin: 40px auto;">
+    <h2 style="margin-top:0; text-align: center;">Join TravelTales</h2>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px;">Create an account to start blogging.</p>
 
     <?php if (!empty($errors)): ?>
         <div class="alert-error">

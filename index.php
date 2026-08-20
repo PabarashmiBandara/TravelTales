@@ -11,24 +11,32 @@ $stmt = $pdo->query("
 $posts = $stmt->fetchAll();
 ?>
 
-<h2>Latest Travel Stories</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 style="margin: 0;">Explore Travel Stories</h2>
+</div>
 
 <?php if (empty($posts)): ?>
-    <div class="card">
-        <p>No travel stories published yet. Be the first to share one!</p>
+    <div class="card" style="text-align: center; padding: 40px 20px;">
+        <h3>No stories published yet 🌍</h3>
+        <p style="color: var(--text-muted);">Be the first explorer to share your journey with the community!</p>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <a href="editor.php" class="btn" style="margin-top: 10px;">Create First Story</a>
+        <?php else: ?>
+            <a href="register.php" class="btn" style="margin-top: 10px;">Join TravelTales</a>
+        <?php endif; ?>
     </div>
 <?php else: ?>
     <?php foreach ($posts as $post): ?>
         <article class="card">
-            <h3 style="margin-top: 0; color: #111;"><?= htmlspecialchars($post['title']); ?></h3>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">
-                Published by <strong><?= htmlspecialchars($post['username']); ?></strong> on <?= date('F j, Y', strtotime($post['created_at'])); ?>
-            </p>
-            <p><?= nl2br(htmlspecialchars($post['content'])); ?></p>
+            <h2 style="margin-top: 0; color: var(--text-color);"><?= htmlspecialchars($post['title']); ?></h2>
+            <div class="story-meta">
+                Written by <strong><?= htmlspecialchars($post['username']); ?></strong> • <?= date('F j, Y', strtotime($post['created_at'])); ?>
+            </div>
+            <p style="white-space: pre-line; font-size: 1rem;"><?= htmlspecialchars($post['content']); ?></p>
             
             <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $post['user_id']): ?>
-                <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 12px;">
-                    <a href="editor.php?id=<?= $post['id']; ?>" class="btn" style="background: #555;">Edit</a>
+                <div class="story-actions">
+                    <a href="editor.php?id=<?= $post['id']; ?>" class="btn btn-secondary">Edit</a>
                     <a href="delete.php?id=<?= $post['id']; ?>" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this story?');">Delete</a>
                 </div>
             <?php endif; ?>

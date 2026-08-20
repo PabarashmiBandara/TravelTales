@@ -29,8 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="card" style="max-width: 450px; margin: 30px auto;">
-    <h2 style="margin-top:0;">Login to TravelTales</h2>
+<div class="card" style="max-width: 440px; margin: 40px auto;">
+    <h2 style="margin-top:0; text-align: center;">Welcome Back</h2>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 24px;">Login to manage your travel stories.</p>
 
     <?php if ($error): ?>
         <div class="alert-error"><?= htmlspecialchars($error); ?></div>
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="password">Password</label>
         <input type="password" id="password" name="password" required>
 
-        <button type="submit" class="btn" style="width: 100%;">Login</button>
+        <button type="submit" class="btn" style="width: 100%;">Sign In</button>
     </form>
 </div>
 

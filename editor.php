@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = trim($_POST['content'] ?? '');
 
     if (empty($title)) { $errors[] = "Title is required."; }
-    if (empty($content)) { $errors[] = "Content is required."; }
+    if (empty($content)) { $errors[] = "Story content cannot be empty."; }
 
     if (empty($errors)) {
         if ($id) {
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="card">
-    <h2><?= $id ? 'Edit Travel Story' : 'Publish a New Travel Story'; ?></h2>
+    <h2 style="margin-top: 0;"><?= $id ? 'Edit Travel Story' : 'Publish a New Adventure'; ?></h2>
 
     <?php if (!empty($errors)): ?>
         <div class="alert-error">
@@ -68,10 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="title">Story Title</label>
         <input type="text" id="title" name="title" value="<?= htmlspecialchars($title); ?>" required placeholder="e.g., Backpacking Across Sri Lanka">
 
-        <label for="content">Story Content</label>
-        <textarea id="content" name="content" rows="10" required placeholder="Describe your travel adventure..."><?= htmlspecialchars($content); ?></textarea>
+        <label for="content">Story Details</label>
+        <textarea id="content" name="content" rows="12" required placeholder="Describe your travel adventure..."><?= htmlspecialchars($content); ?></textarea>
 
-        <button type="submit" class="btn"><?= $id ? 'Update Story' : 'Publish Story'; ?></button>
+        <button type="submit" class="btn"><?= $id ? 'Save Changes' : 'Publish Story'; ?></button>
+        <a href="index.php" style="margin-left: 12px; color: var(--text-muted); text-decoration: none;">Cancel</a>
     </form>
 </div>
 

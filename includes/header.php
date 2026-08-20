@@ -13,18 +13,18 @@ if (session_status() === PHP_SESSION_NONE) {
 </head>
 <body>
     <header>
-        <nav style="display: flex; justify-content: space-between; align-items: center;">
+        <nav class="nav-container">
             <div>
-                <a href="index.php" style="font-size: 1.2rem;">✈️ TravelTales</a> | 
-                <a href="index.php">Explore Stories</a>
+                <a href="index.php" class="brand-logo">✈️ TravelTales</a>
             </div>
-            <div>
+            <div class="nav-links">
+                <a href="index.php">Explore Stories</a>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="editor.php" class="btn">+ New Story</a>
-                    <a href="logout.php" style="color: #666; margin-left: 10px;">Logout (<?= htmlspecialchars($_SESSION['username']); ?>)</a>
+                    <a href="editor.php" class="btn">+ Write Story</a>
+                    <a href="logout.php" style="color: var(--text-muted);">Logout (<?= htmlspecialchars($_SESSION['username']); ?>)</a>
                 <?php else: ?>
-                    <a href="login.php">Login</a> | 
-                    <a href="register.php">Join Travel Stories</a>
+                    <a href="login.php">Login</a>
+                    <a href="register.php" class="btn">Get Started</a>
                 <?php endif; ?>
             </div>
         </nav>
