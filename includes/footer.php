@@ -1,7 +1,7 @@
 </main>
     <footer>
         <hr>
-        <p>&copy; <?= date('Y'); ?> TravelTales. Built for IN2120 Web Application Assignment.</p>
+        <p>&copy; <?= date('Y'); ?> TravelTales. All rights reserved.</p>
     </footer>
 </body>
 </html>
