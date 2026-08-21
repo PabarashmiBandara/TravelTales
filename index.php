@@ -12,7 +12,7 @@ $posts = $stmt->fetchAll();
 ?>
 
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2 style="margin: 0;">Explore Travel Stories</h2>
+    <h2 style="margin: 0;">Latest Travel Stories</h2>
 </div>
 
 <?php if (empty($posts)): ?>
