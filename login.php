@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php endif; ?>
 
     <form action="login.php" method="POST">
-        <label for="username">Username</label>
+        <label for="username">Email Address</label>
         <input type="text" id="username" name="username" required value="<?= htmlspecialchars($_POST['username'] ?? ''); ?>">
 
         <label for="password">Password</label>
