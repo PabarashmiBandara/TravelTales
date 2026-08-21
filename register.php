@@ -1,85 +1,129 @@
 <?php
-// register.php
-require_once 'config/db.php';
-require_once 'includes/header.php';
+//User Registration
 
-$errors = [];
+require_once __DIR__ . '/config/db.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// If already logged in, redirect to home
+if (isset($_SESSION['user_id'])) {
+    $_SESSION['flash_info'] = "You are already logged in.";
+    header("Location: index.php");
+    exit;
+}
+
+$pageTitle = "Create an Account";
+$error = '';
+$username = '';
+$email = '';
+
+// Process Registration Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username         = trim($_POST['username'] ?? '');
-    $email            = trim($_POST['email'] ?? '');
-    $password         = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+    $username        = trim($_POST['username'] ?? '');
+    $email           = trim($_POST['email'] ?? '');
+    $password        = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    if (empty($username)) { $errors[] = "Username is required."; }
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = "Valid email address is required."; }
-    if (strlen($password) < 6) { $errors[] = "Password must be at least 6 characters long."; }
-    if ($password !== $confirm_password) { $errors[] = "Passwords do not match."; }
+    // Validation Checks
+    if (empty($username) || empty($email) || empty($password) || empty($confirmPassword)) {
+        $error = "All fields are required. Please fill in all fields.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid email address.";
+    } elseif (!preg_match('/^[a-zA-Z0-9_]{3,30}$/', $username)) {
+        $error = "Username must be between 3 and 30 characters and contain only letters, numbers, and underscores.";
+    } elseif (strlen($password) < 6) {
+        $error = "Password must be at least 6 characters long.";
+    } elseif ($password !== $confirmPassword) {
+        $error = "Passwords do not match. Please verify your password.";
+    } else {
+        try {
+            // Check if username or email already exists
+            $stmt = $pdo->prepare("SELECT id, username, email FROM users WHERE username = :username OR email = :email LIMIT 1");
+            $stmt->execute([':username' => $username, ':email' => $email]);
+            $existingUser = $stmt->fetch();
 
-    if (empty($errors)) {
-        $stmt = $pdo->prepare("SELECT id FROM user WHERE username = :username OR email = :email");
-        $stmt->execute(['username' => $username, 'email' => $email]);
-        
-        if ($stmt->rowCount() > 0) {
-            $errors[] = "Username or email is already taken.";
-        } else {
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            if ($existingUser) {
+                if (strtolower($existingUser['username']) === strtolower($username)) {
+                    $error = "The username '{$username}' is already taken. Please choose another one.";
+                } else {
+                    $error = "An account with email '{$email}' already exists. Please log in.";
+                }
+            } else {
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-            $insertStmt = $pdo->prepare("INSERT INTO user (username, email, password) VALUES (:username, :email, :password)");
-            if ($insertStmt->execute(['username' => $username, 'email' => $email, 'password' => $hashedPassword])) {
+                // Insert the new user
+                $insertStmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')");
+                $insertStmt->execute([
+                    ':username' => $username,
+                    ':email'    => $email,
+                    ':password' => $passwordHash
+                ]);
+
+                $_SESSION['flash_success'] = "Account created successfully! You can now log in to start sharing your travel tales.";
                 header("Location: login.php");
                 exit;
-            } else {
-                $errors[] = "Something went wrong. Please try again.";
             }
+        } catch (PDOException $e) {
+            error_log("Registration DB Error: " . $e->getMessage());
+            $error = "An error occurred while creating your account. Please try again later.";
         }
     }
 }
+
+require_once __DIR__ . '/includes/header.php';
 ?>
 
-<div class="auth-container">
-    <h2 style="text-align: center; margin-top: 0;">Join TravelTales ✈️</h2>
-    <p style="text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
-        Create your account to start writing and sharing your travel stories.
-    </p>
-
-    <?php if (!empty($errors)): ?>
-        <div class="alert-error">
-            <ul style="margin: 0; padding-left: 18px;">
-                <?php foreach ($errors as $error): ?>
-                    <li><?= htmlspecialchars($error); ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
-
-    <form action="register.php" method="POST">
-        <div class="form-group">
-            <label for="username">Username *</label>
-            <input type="text" id="username" name="username" class="form-control" placeholder="e.g. wanderer_sam" required value="<?= htmlspecialchars($_POST['username'] ?? ''); ?>">
+<div class="container container-form auth-wrapper">
+    <div class="form-card">
+        <div class="form-header">
+            <h2>Join Travel Tales ✈️</h2>
+            <p>Create your account to start writing and sharing your travel stories.</p>
         </div>
 
-        <div class="form-group">
-            <label for="email">Email Address *</label>
-            <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required value="<?= htmlspecialchars($_POST['email'] ?? ''); ?>">
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-error">
+                <span>⚠️ <?php echo htmlspecialchars($error); ?></span>
+            </div>
+        <?php endif; ?>
+
+        <form action="register.php" method="POST" id="registerForm" novalidate>
+            <div class="form-group">
+                <label for="username">Username <span class="required">*</span></label>
+                <input type="text" id="username" name="username" class="form-control" 
+                       value="<?php echo htmlspecialchars($username); ?>" 
+                       placeholder="e.g. wanderer_sam" required autofocus>
+                <div class="form-help">Letters, numbers, and underscores only (3-30 characters).</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address <span class="required">*</span></label>
+                <input type="email" id="email" name="email" class="form-control" 
+                       value="<?php echo htmlspecialchars($email); ?>" 
+                       placeholder="you@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input type="password" id="password" name="password" class="form-control" 
+                       placeholder="At least 6 characters" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" 
+                       placeholder="Re-enter password" required>
+                <div id="passwordMatchError" class="form-help" style="color: #ef4444; display: none;"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Create Account</button>
+        </form>
+
+        <div class="form-footer">
+            Already have an account? <a href="login.php">Log In Here</a>
         </div>
-
-        <div class="form-group">
-            <label for="password">Password *</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="At least 6 characters" required>
-        </div>
-
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password *</label>
-            <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Re-enter password" required>
-        </div>
-
-        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">Create Account</button>
-    </form>
-
-    <p style="text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 20px;">
-        Already have an account? <a href="login.php" style="color: var(--primary);">Log In Here</a>
-    </p>
+    </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

@@ -1,76 +1,328 @@
 <?php
-require_once 'config/db.php';
-require_once 'includes/header.php';
+//Main Page & Story View
+require_once __DIR__ . '/config/db.php';
 
-$posts = [];
-
-try {
-    $stmt = $pdo->query("
-        SELECT blogPost.*, user.username 
-        FROM blogPost 
-        JOIN user ON blogPost.user_id = user.id 
-        ORDER BY blogPost.created_at DESC
-    ");
-    $posts = $stmt->fetchAll();
-} catch (PDOException $e) {
-    try {
-        $stmt = $pdo->query("
-            SELECT blogpost.*, user.username 
-            FROM blogpost 
-            JOIN user ON blogpost.user_id = user.id 
-            ORDER BY blogpost.created_at DESC
-        ");
-        $posts = $stmt->fetchAll();
-    } catch (PDOException $ex) {
-        $posts = [];
-    }
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
-?>
 
-<section class="hero-banner">
-    <span class="hero-tag">✦ FOOTPRINTS & STORIES</span>
-    <h1 class="hero-title">Go beyond the destination,<br>Discover the journey</h1>
-    <p class="hero-subtitle">Explore inspiring travel stories, unforgettable experiences, hidden places, and practical guides from travelers around the globe.</p>
-    <div>
-        <a href="#stories" class="btn-primary">Explore Stories</a>
-        <?php if (!isset($_SESSION['user_id'])): ?>
-            <a href="register.php" class="btn-outline" style="margin-left: 10px;">Join TravelTales</a>
-        <?php endif; ?>
-    </div>
-</section>
+// Check logged-in user state
+$currentUserId = $_SESSION['user_id'] ?? null;
+$isLoggedIn = !empty($currentUserId);
 
-<div class="main-container" id="stories">
-    <h2 style="margin-bottom: 20px;">Latest Travel Stories</h2>
+$blogId = isset($_GET['id']) ? (int)$_GET['id'] : null;
+$filter = $_GET['filter'] ?? '';
+$searchQuery = trim($_GET['q'] ?? '');
 
-    <?php if (empty($posts)): ?>
-        <div class="card" style="text-align: center; padding: 50px 20px;">
-            <div style="font-size: 2rem; margin-bottom: 10px;">🗺️</div>
-            <h3>No travel stories published yet</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Be the very first traveler to publish an inspiring adventure on TravelTales!</p>
-            <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="editor.php" class="btn-primary" style="margin-top: 15px;">Publish First Story</a>
-            <?php else: ?>
-                <a href="register.php" class="btn-primary" style="margin-top: 15px;">Join & Publish</a>
-            <?php endif; ?>
-        </div>
-    <?php else: ?>
-        <?php foreach ($posts as $post): ?>
-            <article class="card">
-                <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.4rem;"><?= htmlspecialchars($post['title']); ?></h3>
-                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-                    Written by <strong><?= htmlspecialchars($post['username']); ?></strong> • <?= date('F j, Y', strtotime($post['created_at'])); ?>
+if (!empty($blogId) && $blogId > 0) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.username, u.email 
+            FROM blog_posts b
+            JOIN users u ON b.user_id = u.id
+            WHERE b.id = :id
+            LIMIT 1
+        ");
+        $stmt->execute([':id' => $blogId]);
+        $post = $stmt->fetch();
+
+        if (!$post) {
+            $pageTitle = "Story Not Found";
+            require_once __DIR__ . '/includes/header.php';
+            ?>
+            <div class="container container-narrow" style="padding: 60px 20px;">
+                <div class="empty-state">
+                    <div class="empty-icon">🏝️</div>
+                    <h3>Story Not Found</h3>
+                    <p>The travel tale you are looking for may have been removed, deleted, or the link is incorrect.</p>
+                    <a href="index.php" class="btn btn-primary">← Back to All Stories</a>
                 </div>
-                <p style="white-space: pre-line; font-size: 0.95rem; color: #334155;"><?= htmlspecialchars($post['content']); ?></p>
-                
-                <?php if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $post['user_id']): ?>
-                    <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 10px;">
-                        <a href="editor.php?id=<?= $post['id']; ?>" class="btn-outline" style="color: var(--text-main); border-color: var(--border-color);">Edit</a>
-                        <a href="delete.php?id=<?= $post['id']; ?>" class="btn-danger" onclick="return confirm('Are you sure you want to delete this story?');">Delete</a>
+            </div>
+            <?php
+            require_once __DIR__ . '/includes/footer.php';
+            exit;
+        }
+
+        $pageTitle = $post['title'];
+        // Check if the currently logged-in user is the owner of this story
+        $isOwner = ($isLoggedIn && (int)$currentUserId === (int)$post['user_id']);
+        
+        require_once __DIR__ . '/includes/header.php';
+        ?>
+
+        <article class="single-blog-article">
+            <div class="container container-narrow">
+                <!-- Back Navigation -->
+                <div class="back-nav">
+                    <a href="index.php" class="back-link">← Back to All Stories</a>
+                </div>
+
+                <!-- Story Header -->
+                <header class="single-blog-header">
+                    <h1 class="single-blog-title"><?php echo htmlspecialchars($post['title']); ?></h1>
+                    
+                    <div class="single-blog-meta">
+                        <div class="author-meta-wrapper">
+                            <div class="author-avatar-large">
+                                <?php echo strtoupper(substr($post['username'], 0, 1)); ?>
+                            </div>
+                            <div class="author-meta-info">
+                                <span class="author-meta-name">By <?php echo htmlspecialchars($post['username']); ?></span>
+                                <span class="author-meta-date">
+                                    Published on <?php echo date('F j, Y', strtotime($post['created_at'])); ?>
+                                    <?php if (!empty($post['updated_at']) && $post['updated_at'] !== $post['created_at']): ?>
+                                        <small>(Updated: <?php echo date('M j, Y', strtotime($post['updated_at'])); ?>)</small>
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Owner-only Action Buttons (Edit | Delete) -->
+                        <?php if ($isOwner): ?>
+                            <div class="single-owner-controls">
+                                <a href="editor.php?id=<?php echo $post['id']; ?>" class="btn btn-outline btn-sm">✏️ Edit Story</a>
+                                <a href="delete.php?id=<?php echo $post['id']; ?>" 
+                                   class="btn btn-danger btn-sm js-confirm-delete" 
+                                   onclick="return confirm('Are you sure you want to delete this travel story? This action cannot be undone.');">🗑️ Delete</a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </header>
+
+                <!-- Cover Image -->
+                <?php if (!empty($post['image'])): ?>
+                    <div class="single-featured-media">
+                        <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     </div>
                 <?php endif; ?>
-            </article>
-        <?php endforeach; ?>
-    <?php endif; ?>
-</div>
 
-<?php require_once 'includes/footer.php'; ?>
+                <!-- Story Content -->
+                <div class="single-blog-content">
+                    <?php
+                        echo nl2br(htmlspecialchars($post['content'])); 
+                    ?>
+                </div>
+
+                <!-- Footer Navigation within Article -->
+                <div style="margin-top: 40px; padding: 24px; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="author-avatar-large" style="background: var(--accent);">
+                            <?php echo strtoupper(substr($post['username'], 0, 1)); ?>
+                        </div>
+                        <div>
+                            <strong style="color: var(--primary); font-size: 1.05rem;">Written by <?php echo htmlspecialchars($post['username']); ?></strong>
+                            <div style="color: var(--text-muted); font-size: 0.85rem;">Travel Tales Storyteller</div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="index.php" class="btn btn-outline btn-sm">← Back to Stories</a>
+                    </div>
+                </div>
+
+            </div>
+        </article>
+
+        <?php
+        require_once __DIR__ . '/includes/footer.php';
+        exit;
+    } catch (PDOException $e) {
+        error_log("Single Post Fetch Error: " . $e->getMessage());
+        die("An error occurred while loading this travel story.");
+    }
+}
+
+$pageTitle = "Explore Stories";
+
+// Build SQL query
+$sql = "
+    SELECT b.*, u.username 
+    FROM blog_posts b
+    JOIN users u ON b.user_id = u.id
+";
+$params = [];
+$conditions = [];
+
+// Filter: My Stories
+if ($filter === 'my' && $isLoggedIn) {
+    $conditions[] = "b.user_id = :userId";
+    $params[':userId'] = $currentUserId;
+}
+
+// Search Filter
+if (!empty($searchQuery)) {
+    $conditions[] = "(b.title LIKE :searchTitle OR b.content LIKE :searchContent)";
+    $params[':searchTitle'] = '%' . $searchQuery . '%';
+    $params[':searchContent'] = '%' . $searchQuery . '%';
+}
+
+if (!empty($conditions)) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$sql .= " ORDER BY b.created_at DESC";
+
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $posts = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log("Posts Fetch Error: " . $e->getMessage());
+    $posts = [];
+}
+
+require_once __DIR__ . '/includes/header.php';
+?>
+
+<!-- Hero Banner (Shown on default home page) -->
+<?php if (empty($filter) && empty($searchQuery)): ?>
+    <section class="hero-section">
+        <div class="container">
+            <span class="hero-tagline">✨ Footprints &amp; Stories</span>
+            <h1 class="hero-title">Go beyond the destination, <br>Discover the journey.</h1>
+            <p class="hero-subtitle">Explore inspiring travel stories, unforgettable experiences, hidden places, and practical guides from travelers around the globe.</p>
+            <div class="hero-actions">
+                <a href="#stories" class="btn btn-primary btn-lg">Explore Stories 🧭</a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="editor.php" class="btn btn-outline btn-lg" style="color: #fff; border-color: rgba(255,255,255,0.4);">✍️ Create Story</a>
+                <?php else: ?>
+                    <a href="register.php" class="btn btn-outline btn-lg" style="color: #fff; border-color: rgba(255,255,255,0.4);">Join Travel Tales</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+<?php endif; ?>
+
+<!-- Main Stories Container -->
+<section id="stories" class="container" style="padding-top: 20px;">
+    
+    <!-- Section Toolbar: Title, Tabs & Search -->
+    <div class="section-toolbar">
+        <div>
+            <h2 class="section-title">
+                <?php 
+                    if ($filter === 'my') {
+                        echo "My Stories";
+                    } elseif (!empty($searchQuery)) {
+                        echo "Search Results for \"" . htmlspecialchars($searchQuery) . "\"";
+                    } else {
+                        echo "Latest Travel Stories";
+                    }
+                ?>
+            </h2>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <!-- Filter Tabs for Logged-In Users -->
+            <?php if ($isLoggedIn): ?>
+                <div class="filter-tabs">
+                    <a href="index.php" class="filter-tab <?php echo ($filter !== 'my') ? 'active' : ''; ?>">All Stories</a>
+                    <a href="index.php?filter=my" class="filter-tab <?php echo ($filter === 'my') ? 'active' : ''; ?>">My Stories (<?php 
+                        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM blog_posts WHERE user_id = :uid");
+                        $countStmt->execute([':uid' => $currentUserId]);
+                        echo (int)$countStmt->fetchColumn();
+                    ?>)</a>
+                </div>
+            <?php endif; ?>
+
+            <!-- Search Form -->
+            <form action="index.php" method="GET" class="search-box">
+                <?php if ($filter === 'my'): ?>
+                    <input type="hidden" name="filter" value="my">
+                <?php endif; ?>
+                <input type="text" name="q" value="<?php echo htmlspecialchars($searchQuery); ?>" placeholder="Search destinations..." aria-label="Search stories">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Blog Posts -->
+    <?php if (!empty($posts)): ?>
+        <div class="blog-grid">
+            <?php foreach ($posts as $post): ?>
+                <?php 
+                    // Ownership check for displaying Edit/Delete buttons
+                    $isPostOwner = ($isLoggedIn && (int)$currentUserId === (int)$post['user_id']); 
+                    
+                    $excerpt = mb_substr(strip_tags($post['content']), 0, 135);
+                    if (mb_strlen(strip_tags($post['content'])) > 135) {
+                        $excerpt .= '...';
+                    }
+                ?>
+                <article class="blog-card">
+                    <div class="blog-card-media">
+                        <?php if (!empty($post['image'])): ?>
+                            <img src="<?php echo htmlspecialchars($post['image']); ?>" 
+                                 alt="<?php echo htmlspecialchars($post['title']); ?>" 
+                                 loading="lazy">
+                        <?php else: ?>
+                            <div class="blog-card-placeholder">
+                                ✈️
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="blog-card-body">
+                        <div class="blog-meta">
+                            <span class="blog-author">By <?php echo htmlspecialchars($post['username']); ?></span>
+                            <span>•</span>
+                            <span class="blog-date">📅 <?php echo date('M d, Y', strtotime($post['created_at'])); ?></span>
+                        </div>
+
+                        <!-- Story Title -->
+                        <h3 class="blog-title">
+                            <a href="index.php?id=<?php echo $post['id']; ?>">
+                                <?php echo htmlspecialchars($post['title']); ?>
+                            </a>
+                        </h3>
+
+                        <p class="blog-excerpt">
+                            <?php echo htmlspecialchars($excerpt); ?>
+                        </p>
+
+                        <!-- Card Footer with Read More & Owner Actions -->
+                        <div class="blog-card-footer">
+                            <a href="index.php?id=<?php echo $post['id']; ?>" class="read-more-link">
+                                Read More →
+                            </a>
+
+                            <!-- Edit / Delete Buttons ONLY for the author who owns the story -->
+                            <?php if ($isPostOwner): ?>
+                                <div class="card-owner-actions">
+                                    <a href="editor.php?id=<?php echo $post['id']; ?>" class="btn btn-outline btn-sm" title="Edit story">Edit</a>
+                                    <a href="delete.php?id=<?php echo $post['id']; ?>" 
+                                       class="btn btn-danger btn-sm js-confirm-delete" 
+                                       onclick="return confirm('Are you sure you want to delete this travel story? This action cannot be undone.');" 
+                                       title="Delete story">Delete</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="empty-state">
+            <div class="empty-icon">🗺️</div>
+            <?php if (!empty($searchQuery)): ?>
+                <h3>No stories found matching "<?php echo htmlspecialchars($searchQuery); ?>"</h3>
+                <p>Try searching for different keywords or explore all travel tales.</p>
+                <a href="index.php<?php echo ($filter === 'my') ? '?filter=my' : ''; ?>" class="btn btn-outline">Clear Search</a>
+            <?php elseif ($filter === 'my'): ?>
+                <h3>You haven't written any travel stories yet</h3>
+                <p>Share your favorite destinations, hidden gems, and travel tips with the world.</p>
+                <a href="editor.php" class="btn btn-primary">✍️ Create Your First Story</a>
+            <?php else: ?>
+                <h3>No travel stories published yet</h3>
+                <p>Be the very first traveler to publish an inspiring adventure on Travel Tales!</p>
+                <?php if ($isLoggedIn): ?>
+                    <a href="editor.php" class="btn btn-primary">✍️ Create Story</a>
+                <?php else: ?>
+                    <a href="register.php" class="btn btn-primary">Join &amp; Publish</a>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+</section>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>

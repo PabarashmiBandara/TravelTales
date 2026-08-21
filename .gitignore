@@ -1,9 +1,9 @@
-# Ignore environment configuration files containing sensitive credentials
+# Environment variables (contains sensitive database credentials)
 .env
 
-# Ignore OS-generated files
+# Operating System & IDE files
 .DS_Store
 Thumbs.db
-
-# Ignore local vendor folders (if using composer later)
-/vendor/
+.idea/
+.vscode/
+*.log

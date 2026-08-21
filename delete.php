@@ -1,19 +1,63 @@
 <?php
-require_once 'config/db.php';
-session_start();
+//Delete a Story
 
-if (!isset($_SESSION['user_id'])) {
+require_once __DIR__ . '/config/db.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 1. Authentication Check: Must be logged in
+if (empty($_SESSION['user_id'])) {
+    $_SESSION['flash_error'] = "Please log in to delete a story.";
     header("Location: login.php");
     exit;
 }
 
-$id = $_GET['id'] ?? null;
+$currentUserId = (int)$_SESSION['user_id'];
+$blogId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if ($id) {
-    $stmt = $pdo->prepare("DELETE FROM blogPost WHERE id = :id AND user_id = :user_id");
-    $stmt->execute(['id' => $id, 'user_id' => $_SESSION['user_id']]);
+// 2. Validate Story ID
+if ($blogId <= 0) {
+    $_SESSION['flash_error'] = "Invalid story ID.";
+    header("Location: index.php");
+    exit;
 }
 
-header("Location: index.php");
-exit;
-?>
+try {
+    // 3. Find the story in the database
+    $stmt = $pdo->prepare("SELECT id, user_id, title FROM blog_posts WHERE id = :id LIMIT 1");
+    $stmt->execute([':id' => $blogId]);
+    $story = $stmt->fetch();
+
+    if (!$story) {
+        $_SESSION['flash_error'] = "Story not found.";
+        header("Location: index.php");
+        exit;
+    }
+
+    // 4. CRITICAL OWNERSHIP CHECK: Ensure logged-in user owns the story
+    if ((int)$story['user_id'] !== $currentUserId) {
+        $_SESSION['flash_error'] = "Authorization Denied: You can only delete your own stories.";
+        header("Location: index.php");
+        exit;
+    }
+
+    // 5. Delete the story from the database
+    $deleteStmt = $pdo->prepare("DELETE FROM blog_posts WHERE id = :id AND user_id = :user_id");
+    $deleteStmt->execute([
+        ':id'      => $blogId,
+        ':user_id' => $currentUserId
+    ]);
+
+    // 6. Set success message and redirect to home
+    $_SESSION['flash_success'] = "Story deleted successfully!";
+    header("Location: index.php");
+    exit;
+
+} catch (PDOException $e) {
+    error_log("Delete Story Error: " . $e->getMessage());
+    $_SESSION['flash_error'] = "A database error occurred while trying to delete the story.";
+    header("Location: index.php");
+    exit;
+}
