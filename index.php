@@ -22,6 +22,7 @@ $posts = $stmt->fetchAll();
         <?php if (isset($_SESSION['user_id'])): ?>
             <a href="editor.php" class="btn" style="margin-top: 10px;">Create First Story</a>
         <?php else: ?>
+            <a href="index.php" class="btn" style="margin-top: 10px;">Explore Stories</a>
             <a href="register.php" class="btn" style="margin-top: 10px;">Join TravelTales</a>
         <?php endif; ?>
     </div>

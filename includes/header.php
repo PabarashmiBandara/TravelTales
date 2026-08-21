@@ -24,7 +24,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     <a href="logout.php" style="color: var(--text-muted);">Logout (<?= htmlspecialchars($_SESSION['username']); ?>)</a>
                 <?php else: ?>
                     <a href="login.php">Login</a>
-                    <a href="register.php" class="btn">Get Started</a>
+                    <a href="register.php" class="btn">Join TravelTales</a>
                 <?php endif; ?>
             </div>
         </nav>
