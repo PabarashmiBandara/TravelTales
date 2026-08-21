@@ -17,12 +17,8 @@ if ($id) {
     $stmt->execute(['id' => $id]);
     $post = $stmt->fetch();
 
-    if (!$post) {
-        die("Story not found.");
-    }
-
-    if ($post['user_id'] != $_SESSION['user_id']) {
-        die("Unauthorized access! You can only edit your own stories.");
+    if (!$post || $post['user_id'] != $_SESSION['user_id']) {
+        die("Unauthorized or story not found.");
     }
 
     $title = $post['title'];
@@ -34,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = trim($_POST['content'] ?? '');
 
     if (empty($title)) { $errors[] = "Title is required."; }
-    if (empty($content)) { $errors[] = "Story content cannot be empty."; }
+    if (empty($content)) { $errors[] = "Story content is required."; }
 
     if (empty($errors)) {
         if ($id) {
@@ -51,29 +47,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<div class="card">
-    <h2 style="margin-top: 0;"><?= $id ? 'Edit Travel Story' : 'Publish a New Adventure'; ?></h2>
+<div class="main-container">
+    <div class="card">
+        <h2 style="margin-top: 0;"><?= $id ? 'Edit Story' : 'Publish a New Travel Story'; ?></h2>
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert-error">
-            <ul style="margin: 0; padding-left: 20px;">
-                <?php foreach ($errors as $err): ?>
-                    <li><?= htmlspecialchars($err); ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert-error">
+                <ul style="margin: 0; padding-left: 18px;">
+                    <?php foreach ($errors as $err): ?>
+                        <li><?= htmlspecialchars($err); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
-    <form action="editor.php<?= $id ? '?id=' . $id : ''; ?>" method="POST">
-        <label for="title">Story Title</label>
-        <input type="text" id="title" name="title" value="<?= htmlspecialchars($title); ?>" required placeholder="e.g., Backpacking Across Sri Lanka">
+        <form action="editor.php<?= $id ? '?id=' . $id : ''; ?>" method="POST">
+            <div class="form-group">
+                <label for="title">Story Title</label>
+                <input type="text" id="title" name="title" class="form-control" value="<?= htmlspecialchars($title); ?>" placeholder="e.g., Backpacking Across Sri Lanka" required>
+            </div>
 
-        <label for="content">Story Details</label>
-        <textarea id="content" name="content" rows="12" required placeholder="Describe your travel adventure..."><?= htmlspecialchars($content); ?></textarea>
+            <div class="form-group">
+                <label for="content">Story Details</label>
+                <textarea id="content" name="content" class="form-control" rows="10" placeholder="Describe your travel adventure..." required><?= htmlspecialchars($content); ?></textarea>
+            </div>
 
-        <button type="submit" class="btn"><?= $id ? 'Save Changes' : 'Publish Story'; ?></button>
-        <a href="index.php" style="margin-left: 12px; color: var(--text-muted); text-decoration: none;">Cancel</a>
-    </form>
+            <button type="submit" class="btn-primary"><?= $id ? 'Save Changes' : 'Publish Story'; ?></button>
+            <a href="index.php" style="margin-left: 15px; color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Cancel</a>
+        </form>
+    </div>
 </div>
 
 <?php require_once 'includes/footer.php'; ?>

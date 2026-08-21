@@ -1,181 +1,200 @@
+/* css/style.css - Antigravity Inspired Theme */
 :root {
-    --primary-color: #0284c7;
-    --primary-hover: #0369a1;
-    --bg-color: #f8fafc;
+    --primary: #e06d53;
+    --primary-hover: #cc5b43;
+    --dark-bg: #1c2b3d;
+    --light-bg: #f8fafc;
     --card-bg: #ffffff;
-    --text-color: #1e293b;
+    --text-main: #1e293b;
     --text-muted: #64748b;
     --border-color: #e2e8f0;
-    --danger-color: #ef4444;
-    --danger-hover: #dc2626;
     --radius: 8px;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    max-width: 850px;
-    margin: 0 auto;
-    padding: 20px 15px;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
     line-height: 1.6;
 }
 
-/* Navbar Layout */
-header {
+/* Header & Nav */
+.header-nav {
     background: var(--card-bg);
-    padding: 16px 24px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 24px;
-    border: 1px solid var(--border-color);
-}
-
-.nav-container {
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
 }
 
 .brand-logo {
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--dark-bg);
     text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: var(--text-color);
+    color: var(--text-main);
+    font-size: 0.9rem;
     font-weight: 500;
-    transition: color 0.2s;
 }
 
-.nav-links a:hover {
-    color: var(--primary-color);
+/* Hero Section */
+.hero-banner {
+    background-color: var(--dark-bg);
+    color: #ffffff;
+    padding: 60px 20px;
+    text-align: center;
 }
 
-/* Card Containers */
-.card {
+.hero-tag {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd166;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 20px;
+    letter-spacing: 1px;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    margin: 15px 0 10px;
+    font-weight: 700;
+}
+
+.hero-subtitle {
+    color: #cbd5e1;
+    max-width: 600px;
+    margin: 0 auto 25px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Layout Containers */
+.main-container {
+    max-width: 850px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.auth-container {
+    max-width: 440px;
+    margin: 40px auto;
     background: var(--card-bg);
-    padding: 28px;
+    padding: 35px;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
-    margin-bottom: 24px;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
 }
 
 /* Buttons */
-.btn {
-    background: var(--primary-color);
+.btn-primary {
+    background-color: var(--primary);
     color: #ffffff;
-    padding: 9px 18px;
     border: none;
-    border-radius: 6px;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
-    font-size: 14px;
-    font-weight: 600;
-    transition: background 0.2s, transform 0.1s;
+    font-size: 0.9rem;
 }
 
-.btn:hover {
-    background: var(--primary-hover);
+.btn-primary:hover {
+    background-color: var(--primary-hover);
 }
 
-.btn-secondary {
-    background: #475569;
-}
-
-.btn-secondary:hover {
-    background: #334155;
+.btn-outline {
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 0.9rem;
 }
 
 .btn-danger {
-    background: var(--danger-color);
+    background-color: #ef4444;
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: 0.85rem;
 }
 
-.btn-danger:hover {
-    background: var(--danger-hover);
-}
-
-/* Forms */
-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 6px;
-    font-size: 0.95rem;
-}
-
-input[type="text"], 
-input[type="email"], 
-input[type="password"], 
-textarea {
-    width: 100%;
-    padding: 11px;
-    margin-bottom: 18px;
+/* Story Cards */
+.card {
+    background: var(--card-bg);
+    padding: 25px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 0.95rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
 }
 
-input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-}
-
-/* Alert Feedback Boxes */
+/* Alert Boxes */
 .alert-error {
     background: #fef2f2;
     color: #991b1b;
     padding: 12px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius);
     margin-bottom: 20px;
     border: 1px solid #fecaca;
+    font-size: 0.9rem;
 }
 
-.alert-success {
-    background: #f0fdf4;
-    color: #166534;
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    border: 1px solid #bbf7d0;
-}
-
-/* Story Metadata & Formatting */
-.story-meta {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-}
-
-.story-actions {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    gap: 10px;
-}
-
-footer {
+/* Footer */
+.site-footer {
+    background: var(--dark-bg);
+    color: #94a3b8;
+    padding: 40px 20px;
+    margin-top: 60px;
+    font-size: 0.85rem;
     text-align: center;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
 }
