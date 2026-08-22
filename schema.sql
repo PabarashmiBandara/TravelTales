@@ -1,3 +1,4 @@
+-- 1. Create Database if not exists
 CREATE DATABASE IF NOT EXISTS `travel_tales` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `travel_tales`;
 
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `blog_posts` (
     `title` VARCHAR(255) NOT NULL,
     `content` TEXT NOT NULL,
     `image` VARCHAR(500) DEFAULT NULL,
+    `view_count` INT NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `fk_blog_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

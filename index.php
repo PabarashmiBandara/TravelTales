@@ -1,5 +1,4 @@
 <?php
-//Main Page & Story View
 
 require_once __DIR__ . '/config/db.php';
 
@@ -16,9 +15,10 @@ $blogId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $filter = $_GET['filter'] ?? '';
 $searchQuery = trim($_GET['q'] ?? '');
 
+// 1. SINGLE STORY VIEW
 if (!empty($blogId) && $blogId > 0) {
     try {
-        // Query the story and author details
+        // Query the story and author details using a prepared statement
         $stmt = $pdo->prepare("
             SELECT b.*, u.`username`, u.`email` 
             FROM `blog_posts` b
@@ -29,7 +29,7 @@ if (!empty($blogId) && $blogId > 0) {
         $stmt->execute([':id' => $blogId]);
         $post = $stmt->fetch();
 
-        // If story does not exist, show an error
+        // If story does not exist, show friendly error
         if (!$post) {
             $pageTitle = "Story Not Found";
             require_once __DIR__ . '/includes/header.php';
@@ -48,6 +48,12 @@ if (!empty($blogId) && $blogId > 0) {
         }
 
         $pageTitle = $post['title'];
+        
+        // Increment view count persistently
+        $updateViewsStmt = $pdo->prepare("UPDATE `blog_posts` SET `view_count` = `view_count` + 1 WHERE `id` = :id");
+        $updateViewsStmt->execute([':id' => $blogId]);
+        $post['view_count'] = ($post['view_count'] ?? 0) + 1;
+
         // Check if the currently logged-in user is the owner of this story
         $isOwner = ($isLoggedIn && (int)$currentUserId === (int)$post['user_id']);
         
@@ -93,7 +99,7 @@ if (!empty($blogId) && $blogId > 0) {
                     </div>
                 </header>
 
-                <!-- Cover Image -->
+                <!-- Optional Cover Image -->
                 <?php if (!empty($post['image'])): ?>
                     <div class="single-featured-media">
                         <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
@@ -103,8 +109,13 @@ if (!empty($blogId) && $blogId > 0) {
                 <!-- Complete Story Content -->
                 <div class="single-blog-content">
                     <?php 
+                        // Safely escape content and preserve paragraph breaks
                         echo nl2br(htmlspecialchars($post['content'])); 
                     ?>
+                    
+                    <div style="margin-top: 40px; text-align: right; color: var(--text-muted); font-size: 0.95rem; font-weight: 500;">
+                        👁 <?php echo number_format($post['view_count'] ?? 0); ?> views
+                    </div>
                 </div>
 
                 <!-- Footer Navigation within Article -->
@@ -135,7 +146,7 @@ if (!empty($blogId) && $blogId > 0) {
     }
 }
 
-//ALL STORIES LIST VIEW (index.php)
+// 2. ALL STORIES LIST VIEW (index.php)
 $pageTitle = "Explore Stories";
 
 // Build SQL query
@@ -183,7 +194,7 @@ require_once __DIR__ . '/includes/header.php';
     <section class="hero-section">
         <div class="container">
             <span class="hero-tagline">✨ Footprints &amp; Memories</span>
-            <h1 class="hero-title">Go beyond the destination, <br> Discover the journey.</h1>
+            <h1 class="hero-title">Go beyond the destination, <br>Discover the journey.</h1>
             <p class="hero-subtitle">Explore inspiring travel stories, unforgettable experiences, hidden places, and practical guides from travelers around the globe.</p>
             <div class="hero-actions">
                 <a href="#stories" class="btn btn-primary btn-lg">Explore Stories 🧭</a>
@@ -308,6 +319,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </div>
     <?php else: ?>
+        <!-- Empty State -->
         <div class="empty-state">
             <div class="empty-icon">🗺️</div>
             <?php if (!empty($searchQuery)): ?>

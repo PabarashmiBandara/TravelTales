@@ -1,5 +1,10 @@
 <?php
-//User Registration
+/**
+ * Travel Tales - User Registration
+ *
+ * Handles new user signup with validation, duplicate checks,
+ * and secure password hashing using password_hash().
+ */
 
 require_once __DIR__ . '/config/db.php';
 
@@ -123,6 +128,30 @@ require_once __DIR__ . '/includes/header.php';
         </form>
 
         <div class="form-footer">
+            <!-- Google Sign-In -->
+            <?php if (!empty($env['GOOGLE_CLIENT_ID']) && $env['GOOGLE_CLIENT_ID'] !== 'YOUR_GOOGLE_CLIENT_ID_HERE'): ?>
+                <div style="margin: 0 0 24px 0; text-align: center; position: relative;">
+                    <hr style="border: 0; border-top: 1px solid var(--border-color);">
+                    <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--bg-card); padding: 0 12px; color: var(--text-muted); font-size: 0.85rem;">OR</span>
+                </div>
+                
+                <script src="https://accounts.google.com/gsi/client" async defer></script>
+                <div id="g_id_onload"
+                     data-client_id="<?php echo htmlspecialchars($env['GOOGLE_CLIENT_ID']); ?>"
+                     data-login_uri="<?php echo 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/google_auth.php'; ?>"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="large"
+                     data-theme="outline"
+                     data-text="sign_in_with"
+                     data-shape="rectangular"
+                     data-logo_alignment="left"
+                     style="display: flex; justify-content: center; margin-bottom: 24px;">
+                </div>
+            <?php endif; ?>
+
             Already have an account? <a href="login.php">Log In Here</a>
         </div>
     </div>
