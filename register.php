@@ -1,10 +1,5 @@
 <?php
-/**
- * Travel Tales - User Registration
- *
- * Handles new user signup with validation, duplicate checks,
- * and secure password hashing using password_hash().
- */
+// User Registration
 
 require_once __DIR__ . '/config/db.php';
 
@@ -100,7 +95,7 @@ require_once __DIR__ . '/includes/header.php';
                 <label for="username">Username <span class="required">*</span></label>
                 <input type="text" id="username" name="username" class="form-control" 
                        value="<?php echo htmlspecialchars($username); ?>" 
-                       placeholder="e.g. wanderer_sam" required autofocus>
+                       placeholder="e.g. Anne_Journey" required autofocus>
                 <div class="form-help">Letters, numbers, and underscores only (3-30 characters).</div>
             </div>
 

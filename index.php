@@ -1,8 +1,7 @@
 <?php
-
+// Main Page
 require_once __DIR__ . '/config/db.php';
 
-// Start session if not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -15,10 +14,11 @@ $blogId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $filter = $_GET['filter'] ?? '';
 $searchQuery = trim($_GET['q'] ?? '');
 
+
 // 1. SINGLE STORY VIEW
 if (!empty($blogId) && $blogId > 0) {
     try {
-        // Query the story and author details using a prepared statement
+        // Query the story and author details
         $stmt = $pdo->prepare("
             SELECT b.*, u.`username`, u.`email` 
             FROM `blog_posts` b
@@ -29,7 +29,7 @@ if (!empty($blogId) && $blogId > 0) {
         $stmt->execute([':id' => $blogId]);
         $post = $stmt->fetch();
 
-        // If story does not exist, show friendly error
+        // If story does not exist, show an error
         if (!$post) {
             $pageTitle = "Story Not Found";
             require_once __DIR__ . '/includes/header.php';
@@ -259,7 +259,6 @@ require_once __DIR__ . '/includes/header.php';
                     // Ownership check for displaying Edit/Delete buttons
                     $isPostOwner = ($isLoggedIn && (int)$currentUserId === (int)$post['user_id']); 
                     
-                    // Short content excerpt
                     $excerpt = mb_substr(strip_tags($post['content']), 0, 135);
                     if (mb_strlen(strip_tags($post['content'])) > 135) {
                         $excerpt .= '...';
@@ -283,6 +282,8 @@ require_once __DIR__ . '/includes/header.php';
                             <span class="blog-author">By <?php echo htmlspecialchars($post['username']); ?></span>
                             <span>•</span>
                             <span class="blog-date">📅 <?php echo date('M d, Y', strtotime($post['created_at'])); ?></span>
+                            <span>•</span>
+                            <span class="blog-views">👁 <?php echo number_format($post['view_count'] ?? 0); ?></span>
                         </div>
 
                         <!-- Story Title -->
@@ -292,7 +293,6 @@ require_once __DIR__ . '/includes/header.php';
                             </a>
                         </h3>
 
-                        <!-- Short Excerpt -->
                         <p class="blog-excerpt">
                             <?php echo htmlspecialchars($excerpt); ?>
                         </p>
@@ -300,7 +300,7 @@ require_once __DIR__ . '/includes/header.php';
                         <!-- Card Footer with Read More & Owner Actions -->
                         <div class="blog-card-footer">
                             <a href="index.php?id=<?php echo $post['id']; ?>" class="read-more-link">
-                                Read More →
+                                Read More
                             </a>
 
                             <!-- Edit / Delete Buttons ONLY for the author who owns this story -->
