@@ -1,13 +1,5 @@
 <?php
-/**
- * Travel Tales - Story Editor (Create & Edit)
- *
- * This single file handles both:
- * 1. CREATE STORY: editor.php
- * 2. EDIT STORY:   editor.php?id=X
- *
- * Features strict authentication and server-side ownership verification.
- */
+//Story Editor (Create & Edit)
 
 require_once __DIR__ . '/config/db.php';
 
@@ -45,7 +37,7 @@ if ($isEditMode) {
             exit;
         }
 
-        // CRITICAL OWNERSHIP CHECK: Prevent users from editing another user's story
+        // Prevent users from editing another user's story
         if ((int)$existingStory['user_id'] !== $currentUserId) {
             $_SESSION['flash_error'] = "Authorization Denied: You can only edit your own stories.";
             header("Location: index.php");
@@ -84,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             if ($isEditMode) {
-                // EDIT MODE: Update existing story (safeguarded by user_id)
+                // EDIT MODE: Update existing story
                 $updateStmt = $pdo->prepare("
                     UPDATE `blog_posts` 
                     SET `title` = :title, `content` = :content, `image` = :image, `updated_at` = NOW()
@@ -162,7 +154,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="form-help">Enter a clear and engaging headline for your story.</div>
             </div>
 
-            <!-- Image URL (Optional) -->
+            <!-- Image URL -->
             <div class="form-group">
                 <label for="imageUrlInput">Image URL <small style="color: var(--text-muted); font-weight: normal;">(Optional)</small></label>
                 <input type="url" id="imageUrlInput" name="image" class="form-control" 

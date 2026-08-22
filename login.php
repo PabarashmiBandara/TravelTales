@@ -1,10 +1,5 @@
 <?php
-/**
- * Travel Tales - User Login
- *
- * Authenticates users using password_verify() against hashed database passwords
- * and initializes secure PHP sessions.
- */
+//User Login
 
 require_once __DIR__ . '/config/db.php';
 
@@ -32,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both your email address and password.";
     } else {
         try {
-            // Find user by email using prepared statement
+            // Find user by email
             $stmt = $pdo->prepare("SELECT `id`, `username`, `email`, `password`, `role` FROM `users` WHERE `email` = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $user = $stmt->fetch();

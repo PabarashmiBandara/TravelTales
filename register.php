@@ -1,10 +1,5 @@
 <?php
-/**
- * Travel Tales - User Registration
- *
- * Handles new user signup with validation, duplicate checks,
- * and secure password hashing using password_hash().
- */
+//User Registration
 
 require_once __DIR__ . '/config/db.php';
 

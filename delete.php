@@ -1,14 +1,7 @@
 <?php
-/**
- * Travel Tales - Delete Story
- *
- * Deletes a story after verifying user login and ownership.
- * Prevents users from deleting stories owned by other authors.
- */
-
+//Delete Story
 require_once __DIR__ . '/config/db.php';
 
-// Start session if not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -42,14 +35,14 @@ try {
         exit;
     }
 
-    // 4. CRITICAL OWNERSHIP CHECK: Ensure logged-in user owns the story
+    // 4. Ensure logged-in user owns the story
     if ((int)$story['user_id'] !== $currentUserId) {
         $_SESSION['flash_error'] = "Authorization Denied: You can only delete your own stories.";
         header("Location: index.php");
         exit;
     }
 
-    // 5. Delete the story from the database (safeguarded by user_id)
+    // 5. Delete the story from the database
     $deleteStmt = $pdo->prepare("DELETE FROM `blog_posts` WHERE `id` = :id AND `user_id` = :user_id");
     $deleteStmt->execute([
         ':id'      => $blogId,

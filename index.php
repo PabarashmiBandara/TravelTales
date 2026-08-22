@@ -1,11 +1,5 @@
 <?php
-/**
- * Travel Tales - Main Page & Story View
- *
- * This single file serves both:
- * 1. Single Story View: index.php?id=X
- * 2. All Stories List:  index.php
- */
+//Main Page & Story View
 
 require_once __DIR__ . '/config/db.php';
 
@@ -22,12 +16,9 @@ $blogId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $filter = $_GET['filter'] ?? '';
 $searchQuery = trim($_GET['q'] ?? '');
 
-// ==========================================================
-// 1. SINGLE STORY VIEW (index.php?id=X)
-// ==========================================================
 if (!empty($blogId) && $blogId > 0) {
     try {
-        // Query the story and author details using a prepared statement
+        // Query the story and author details
         $stmt = $pdo->prepare("
             SELECT b.*, u.`username`, u.`email` 
             FROM `blog_posts` b
@@ -38,7 +29,7 @@ if (!empty($blogId) && $blogId > 0) {
         $stmt->execute([':id' => $blogId]);
         $post = $stmt->fetch();
 
-        // If story does not exist, show friendly error
+        // If story does not exist, show an error
         if (!$post) {
             $pageTitle = "Story Not Found";
             require_once __DIR__ . '/includes/header.php';
@@ -102,7 +93,7 @@ if (!empty($blogId) && $blogId > 0) {
                     </div>
                 </header>
 
-                <!-- Optional Cover Image -->
+                <!-- Cover Image -->
                 <?php if (!empty($post['image'])): ?>
                     <div class="single-featured-media">
                         <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
@@ -112,7 +103,6 @@ if (!empty($blogId) && $blogId > 0) {
                 <!-- Complete Story Content -->
                 <div class="single-blog-content">
                     <?php 
-                        // Safely escape content and preserve paragraph breaks
                         echo nl2br(htmlspecialchars($post['content'])); 
                     ?>
                 </div>
@@ -145,9 +135,7 @@ if (!empty($blogId) && $blogId > 0) {
     }
 }
 
-// ==========================================================
-// 2. ALL STORIES LIST VIEW (index.php)
-// ==========================================================
+//ALL STORIES LIST VIEW (index.php)
 $pageTitle = "Explore Stories";
 
 // Build SQL query
@@ -320,7 +308,6 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <!-- Empty State -->
         <div class="empty-state">
             <div class="empty-icon">🗺️</div>
             <?php if (!empty($searchQuery)): ?>
