@@ -21,7 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['credential'])) {
     $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
     
     // Verify client ID
-    $expectedClientId = $env['GOOGLE_CLIENT_ID'] ?? '';
+    $expectedClientId = $_ENV['GOOGLE_CLIENT_ID'] ?? getenv('GOOGLE_CLIENT_ID') ?? '';
+
     
     if (!$payload || !isset($payload['email']) || ($expectedClientId && isset($payload['aud']) && $payload['aud'] !== $expectedClientId)) {
         $_SESSION['flash_error'] = "Authentication failed. Token verification error.";
