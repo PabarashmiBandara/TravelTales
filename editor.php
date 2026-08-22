@@ -1,7 +1,17 @@
 <?php
-//Create & Edit Stories
+/**
+ * Travel Tales - Story Editor (Create & Edit)
+ *
+ * This single file handles both:
+ * 1. CREATE STORY: editor.php
+ * 2. EDIT STORY:   editor.php?id=X
+ *
+ * Features strict authentication and server-side ownership verification.
+ */
 
 require_once __DIR__ . '/config/db.php';
+
+// Start session if not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -22,9 +32,10 @@ $content = '';
 $image = '';
 $error = '';
 
+// 2. If in Edit Mode, fetch existing story and check OWNERSHIP
 if ($isEditMode) {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM blog_posts WHERE id = :id LIMIT 1");
+        $stmt = $pdo->prepare("SELECT * FROM `blog_posts` WHERE `id` = :id LIMIT 1");
         $stmt->execute([':id' => $blogId]);
         $existingStory = $stmt->fetch();
 
@@ -34,13 +45,14 @@ if ($isEditMode) {
             exit;
         }
 
-        // Prevent users from editing another user's story
+        // CRITICAL OWNERSHIP CHECK: Prevent users from editing another user's story
         if ((int)$existingStory['user_id'] !== $currentUserId) {
             $_SESSION['flash_error'] = "Authorization Denied: You can only edit your own stories.";
             header("Location: index.php");
             exit;
         }
 
+        // Pre-fill form fields on initial page load (GET request)
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $title   = $existingStory['title'];
             $content = $existingStory['content'];
@@ -72,11 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             if ($isEditMode) {
-                // EDIT MODE: Update existing story
+                // EDIT MODE: Update existing story (safeguarded by user_id)
                 $updateStmt = $pdo->prepare("
-                    UPDATE blog_posts 
-                    SET title = :title, content = :content, image = :image, updated_at = NOW()
-                    WHERE id = :id AND user_id = :user_id
+                    UPDATE `blog_posts` 
+                    SET `title` = :title, `content` = :content, `image` = :image, `updated_at` = NOW()
+                    WHERE `id` = :id AND `user_id` = :user_id
                 ");
                 $updateStmt->execute([
                     ':title'   => $title,
@@ -90,9 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: index.php");
                 exit;
             } else {
-                //Insert a new story
+                // CREATE MODE: Insert new story
                 $insertStmt = $pdo->prepare("
-                    INSERT INTO blog_posts (user_id, title, content, image, created_at)
+                    INSERT INTO `blog_posts` (`user_id`, `title`, `content`, `image`, `created_at`)
                     VALUES (:user_id, :title, :content, :image, NOW())
                 ");
                 $insertStmt->execute([
@@ -119,6 +131,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="container container-narrow" style="padding: 40px 20px 80px;">
     
+    <!-- Back Navigation Link -->
     <div class="back-nav">
         <a href="index.php" class="back-link">
             ← Cancel and Return Home
@@ -149,7 +162,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="form-help">Enter a clear and engaging headline for your story.</div>
             </div>
 
-            <!-- Image URL -->
+            <!-- Image URL (Optional) -->
             <div class="form-group">
                 <label for="imageUrlInput">Image URL <small style="color: var(--text-muted); font-weight: normal;">(Optional)</small></label>
                 <input type="url" id="imageUrlInput" name="image" class="form-control" 

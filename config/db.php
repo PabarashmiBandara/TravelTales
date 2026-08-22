@@ -37,7 +37,7 @@ $envPath = __DIR__ . '/../.env';
 $env = loadEnv($envPath);
 
 $host     = $env['DB_HOST']     ?? 'localhost';
-$dbName   = $env['DB_NAME']     ?? 'blog_db';
+$dbName   = $env['DB_NAME']     ?? 'travel_tales';
 $username = $env['DB_USER']     ?? 'root';
 $password = $env['DB_PASSWORD'] ?? '';
 

@@ -1,7 +1,15 @@
 <?php
-//Main Page & Story View
+/**
+ * Travel Tales - Main Page & Story View
+ *
+ * This single file serves both:
+ * 1. Single Story View: index.php?id=X
+ * 2. All Stories List:  index.php
+ */
+
 require_once __DIR__ . '/config/db.php';
 
+// Start session if not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,18 +22,23 @@ $blogId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $filter = $_GET['filter'] ?? '';
 $searchQuery = trim($_GET['q'] ?? '');
 
+// ==========================================================
+// 1. SINGLE STORY VIEW (index.php?id=X)
+// ==========================================================
 if (!empty($blogId) && $blogId > 0) {
     try {
+        // Query the story and author details using a prepared statement
         $stmt = $pdo->prepare("
-            SELECT b.*, u.username, u.email 
-            FROM blog_posts b
-            JOIN users u ON b.user_id = u.id
-            WHERE b.id = :id
+            SELECT b.*, u.`username`, u.`email` 
+            FROM `blog_posts` b
+            JOIN `users` u ON b.`user_id` = u.`id`
+            WHERE b.`id` = :id
             LIMIT 1
         ");
         $stmt->execute([':id' => $blogId]);
         $post = $stmt->fetch();
 
+        // If story does not exist, show friendly error
         if (!$post) {
             $pageTitle = "Story Not Found";
             require_once __DIR__ . '/includes/header.php';
@@ -89,16 +102,17 @@ if (!empty($blogId) && $blogId > 0) {
                     </div>
                 </header>
 
-                <!-- Cover Image -->
+                <!-- Optional Cover Image -->
                 <?php if (!empty($post['image'])): ?>
                     <div class="single-featured-media">
                         <img src="<?php echo htmlspecialchars($post['image']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
                     </div>
                 <?php endif; ?>
 
-                <!-- Story Content -->
+                <!-- Complete Story Content -->
                 <div class="single-blog-content">
-                    <?php
+                    <?php 
+                        // Safely escape content and preserve paragraph breaks
                         echo nl2br(htmlspecialchars($post['content'])); 
                     ?>
                 </div>
@@ -131,26 +145,29 @@ if (!empty($blogId) && $blogId > 0) {
     }
 }
 
+// ==========================================================
+// 2. ALL STORIES LIST VIEW (index.php)
+// ==========================================================
 $pageTitle = "Explore Stories";
 
 // Build SQL query
 $sql = "
-    SELECT b.*, u.username 
-    FROM blog_posts b
-    JOIN users u ON b.user_id = u.id
+    SELECT b.*, u.`username` 
+    FROM `blog_posts` b
+    JOIN `users` u ON b.`user_id` = u.`id`
 ";
 $params = [];
 $conditions = [];
 
 // Filter: My Stories
 if ($filter === 'my' && $isLoggedIn) {
-    $conditions[] = "b.user_id = :userId";
+    $conditions[] = "b.`user_id` = :userId";
     $params[':userId'] = $currentUserId;
 }
 
 // Search Filter
 if (!empty($searchQuery)) {
-    $conditions[] = "(b.title LIKE :searchTitle OR b.content LIKE :searchContent)";
+    $conditions[] = "(b.`title` LIKE :searchTitle OR b.`content` LIKE :searchContent)";
     $params[':searchTitle'] = '%' . $searchQuery . '%';
     $params[':searchContent'] = '%' . $searchQuery . '%';
 }
@@ -159,7 +176,7 @@ if (!empty($conditions)) {
     $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
-$sql .= " ORDER BY b.created_at DESC";
+$sql .= " ORDER BY b.`created_at` DESC";
 
 try {
     $stmt = $pdo->prepare($sql);
@@ -177,9 +194,9 @@ require_once __DIR__ . '/includes/header.php';
 <?php if (empty($filter) && empty($searchQuery)): ?>
     <section class="hero-section">
         <div class="container">
-            <span class="hero-tagline">✨ Footprints &amp; Stories</span>
-            <h1 class="hero-title">Go beyond the destination, <br>Discover the journey.</h1>
-            <p class="hero-subtitle">Explore inspiring travel stories, unforgettable experiences, hidden places, and practical guides from travelers around the globe.</p>
+            <span class="hero-tagline">✨ Wanderlust &amp; Discovery</span>
+            <h1 class="hero-title">Stories, journeys, and memories<br>from around the world.</h1>
+            <p class="hero-subtitle">Immerse yourself in authentic travel tales, practical destination guides, and unforgettable moments shared by our global traveler community.</p>
             <div class="hero-actions">
                 <a href="#stories" class="btn btn-primary btn-lg">Explore Stories 🧭</a>
                 <?php if ($isLoggedIn): ?>
@@ -217,7 +234,7 @@ require_once __DIR__ . '/includes/header.php';
                 <div class="filter-tabs">
                     <a href="index.php" class="filter-tab <?php echo ($filter !== 'my') ? 'active' : ''; ?>">All Stories</a>
                     <a href="index.php?filter=my" class="filter-tab <?php echo ($filter === 'my') ? 'active' : ''; ?>">My Stories (<?php 
-                        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM blog_posts WHERE user_id = :uid");
+                        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM `blog_posts` WHERE `user_id` = :uid");
                         $countStmt->execute([':uid' => $currentUserId]);
                         echo (int)$countStmt->fetchColumn();
                     ?>)</a>
@@ -235,7 +252,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
     </div>
 
-    <!-- Blog Posts -->
+    <!-- Blog Posts Grid (Cards) -->
     <?php if (!empty($posts)): ?>
         <div class="blog-grid">
             <?php foreach ($posts as $post): ?>
@@ -243,6 +260,7 @@ require_once __DIR__ . '/includes/header.php';
                     // Ownership check for displaying Edit/Delete buttons
                     $isPostOwner = ($isLoggedIn && (int)$currentUserId === (int)$post['user_id']); 
                     
+                    // Short content excerpt
                     $excerpt = mb_substr(strip_tags($post['content']), 0, 135);
                     if (mb_strlen(strip_tags($post['content'])) > 135) {
                         $excerpt .= '...';
@@ -275,6 +293,7 @@ require_once __DIR__ . '/includes/header.php';
                             </a>
                         </h3>
 
+                        <!-- Short Excerpt -->
                         <p class="blog-excerpt">
                             <?php echo htmlspecialchars($excerpt); ?>
                         </p>
@@ -285,7 +304,7 @@ require_once __DIR__ . '/includes/header.php';
                                 Read More →
                             </a>
 
-                            <!-- Edit / Delete Buttons ONLY for the author who owns the story -->
+                            <!-- Edit / Delete Buttons ONLY for the author who owns this story -->
                             <?php if ($isPostOwner): ?>
                                 <div class="card-owner-actions">
                                     <a href="editor.php?id=<?php echo $post['id']; ?>" class="btn btn-outline btn-sm" title="Edit story">Edit</a>
@@ -301,6 +320,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
         </div>
     <?php else: ?>
+        <!-- Empty State -->
         <div class="empty-state">
             <div class="empty-icon">🗺️</div>
             <?php if (!empty($searchQuery)): ?>

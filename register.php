@@ -1,5 +1,10 @@
 <?php
-//User Registration
+/**
+ * Travel Tales - User Registration
+ *
+ * Handles new user signup with validation, duplicate checks,
+ * and secure password hashing using password_hash().
+ */
 
 require_once __DIR__ . '/config/db.php';
 
@@ -39,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Passwords do not match. Please verify your password.";
     } else {
         try {
-            // Check if username or email already exists
-            $stmt = $pdo->prepare("SELECT id, username, email FROM users WHERE username = :username OR email = :email LIMIT 1");
+            // Check if username or email already exists using prepared statement
+            $stmt = $pdo->prepare("SELECT `id`, `username`, `email` FROM `users` WHERE `username` = :username OR `email` = :email LIMIT 1");
             $stmt->execute([':username' => $username, ':email' => $email]);
             $existingUser = $stmt->fetch();
 
@@ -51,16 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = "An account with email '{$email}' already exists. Please log in.";
                 }
             } else {
+                // Securely hash the password before storing
                 $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
                 // Insert the new user
-                $insertStmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')");
+                $insertStmt = $pdo->prepare("INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES (:username, :email, :password, 'user')");
                 $insertStmt->execute([
                     ':username' => $username,
                     ':email'    => $email,
                     ':password' => $passwordHash
                 ]);
 
+                // Set success message and redirect to login page
                 $_SESSION['flash_success'] = "Account created successfully! You can now log in to start sharing your travel tales.";
                 header("Location: login.php");
                 exit;

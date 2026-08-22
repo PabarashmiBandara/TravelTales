@@ -1,5 +1,11 @@
 <?php
-//User Login
+/**
+ * Travel Tales - User Login
+ *
+ * Authenticates users using password_verify() against hashed database passwords
+ * and initializes secure PHP sessions.
+ */
+
 require_once __DIR__ . '/config/db.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -17,7 +23,7 @@ $pageTitle = "Log In to Your Account";
 $error = '';
 $email = '';
 
-// Login Form Submission
+// Process Login Form Submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -26,11 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter both your email address and password.";
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, username, email, password, role FROM users WHERE email = :email LIMIT 1");
+            // Find user by email using prepared statement
+            $stmt = $pdo->prepare("SELECT `id`, `username`, `email`, `password`, `role` FROM `users` WHERE `email` = :email LIMIT 1");
             $stmt->execute([':email' => $email]);
             $user = $stmt->fetch();
 
+            // Verify password hash
             if ($user && password_verify($password, $user['password'])) {
+                // Regenerate session ID to prevent session fixation
                 session_regenerate_id(true);
 
                 // Store user information in session

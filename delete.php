@@ -1,8 +1,14 @@
 <?php
-//Delete a Story
+/**
+ * Travel Tales - Delete Story
+ *
+ * Deletes a story after verifying user login and ownership.
+ * Prevents users from deleting stories owned by other authors.
+ */
 
 require_once __DIR__ . '/config/db.php';
 
+// Start session if not already active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -26,7 +32,7 @@ if ($blogId <= 0) {
 
 try {
     // 3. Find the story in the database
-    $stmt = $pdo->prepare("SELECT id, user_id, title FROM blog_posts WHERE id = :id LIMIT 1");
+    $stmt = $pdo->prepare("SELECT `id`, `user_id`, `title` FROM `blog_posts` WHERE `id` = :id LIMIT 1");
     $stmt->execute([':id' => $blogId]);
     $story = $stmt->fetch();
 
@@ -43,8 +49,8 @@ try {
         exit;
     }
 
-    // 5. Delete the story from the database
-    $deleteStmt = $pdo->prepare("DELETE FROM blog_posts WHERE id = :id AND user_id = :user_id");
+    // 5. Delete the story from the database (safeguarded by user_id)
+    $deleteStmt = $pdo->prepare("DELETE FROM `blog_posts` WHERE `id` = :id AND `user_id` = :user_id");
     $deleteStmt->execute([
         ':id'      => $blogId,
         ':user_id' => $currentUserId
