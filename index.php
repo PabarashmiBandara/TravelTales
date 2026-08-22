@@ -194,9 +194,9 @@ require_once __DIR__ . '/includes/header.php';
 <?php if (empty($filter) && empty($searchQuery)): ?>
     <section class="hero-section">
         <div class="container">
-            <span class="hero-tagline">✨ Wanderlust &amp; Discovery</span>
-            <h1 class="hero-title">Stories, journeys, and memories<br>from around the world.</h1>
-            <p class="hero-subtitle">Immerse yourself in authentic travel tales, practical destination guides, and unforgettable moments shared by our global traveler community.</p>
+            <span class="hero-tagline">✨ Footprints &amp; Memories</span>
+            <h1 class="hero-title">Go beyond the destination, <br> Discover the journey.</h1>
+            <p class="hero-subtitle">Explore inspiring travel stories, unforgettable experiences, hidden places, and practical guides from travelers around the globe.</p>
             <div class="hero-actions">
                 <a href="#stories" class="btn btn-primary btn-lg">Explore Stories 🧭</a>
                 <?php if ($isLoggedIn): ?>
